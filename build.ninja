@@ -1,34 +1,40 @@
+# Specify the compiler (clang in this case)
+cxx = clang++
 
-# Specify the compiler and flags
-cxx = g++
-cxxflags = -std=c++17 -Wall -pthread
+# Compiler flags
+cxxflags = -std=c++17 -Wall
 
-# Specify the sources and the output executable
+# Linker flags (including libraries)
+ldflags = -lncurses -pthread
+
+# Specify source files
 sources = main.cc hanoi.cc rod.cc
-objects = main.o hanoi.o rod.o
 
-# Rule for compiling .cc files into .o object files
+# Specify output binary
+executable = hanoi
+
+# Rule for compiling each .cc file into an object file
 rule compile
   command = $cxx $cxxflags -c $in -o $out
-  description = Compiling $in
+  description = Compiling $in with clang
 
-# Rule for linking object files into the final executable
+# Rule for linking the object files into the final executable
 rule link
-  command = $cxx $objects -o hanoi -pthread
-  description = Linking $objects to hanoi executable
+  command = $cxx $in -o $out $ldflags
+  description = Linking $out with clang
 
-# Rule for cleaning up generated files (only object files and executable)
-rule clean
-  command = rm -f main.o hanoi.o rod.o hanoi
-  description = Cleaning up object files and executable
-
-# Build targets for object files
+# Build object files
 build main.o: compile main.cc
 build hanoi.o: compile hanoi.cc
 build rod.o: compile rod.cc
 
-# Link the object files to create the final executable
-build hanoi: link main.o hanoi.o rod.o
+# Link object files to create the executable
+build $executable: link main.o hanoi.o rod.o
 
-# Add a clean target
+# Clean target
+rule clean
+  command = rm -f *.o $executable
+  description = Cleaning
+
 build clean: clean
+
