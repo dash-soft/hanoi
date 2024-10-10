@@ -1,10 +1,8 @@
 #include "hanoi.hh"
-#include <atomic>
 #include <fstream>
 #include <iostream>
-#include <ncurses.h>
+#include <ncurses.h> // Include ncurses for the TUI functions
 #include <nlohmann/json.hpp>
-#include <thread>
 
 using json = nlohmann::json;
 
@@ -85,82 +83,72 @@ void displayLogFile() {
 void setupTUI() {
   initscr();   // Initialize the screen
   cbreak();    // Disable line buffering
-  noecho();    // Don't echo the input
+  noecho();    // Don’t echo the input
   curs_set(0); // Hide the cursor
+  clear();     // Clear the screen
 }
 
 // Optimized function to update the TUI after each move, with better spacing
-void updateTUI(const Rod &sourceRod, const Rod &targetRod, const Rod &auxRod) {
-  mvprintw(0, 0, "Tower of Hanoi TUI");
-  mvprintw(1, 0, "-------------------");
+void updateTUI(const Rod &sourceRod, const Rod &targetRod, const Rod &auxRod,
+               int moveCount) {
+  mvprintw(0, 0, "Tower of Hanoi Simulation");
+  mvprintw(1, 0, "------------------------");
 
-  // Only update the Source rod display
   mvprintw(3, 0, "Source: ");
-  clrtoeol(); // Clear to end of the line to overwrite only the relevant part
+  clrtoeol(); // Clear to end of line
   for (int disk : sourceRod.getDisks()) {
-    printw("[%d]   ", disk); // Add extra spacing between each disk
+    printw("[%d] ", disk);
   }
 
-  // Only update the Auxiliary rod display
   mvprintw(5, 0, "Auxiliary: ");
-  clrtoeol(); // Clear to end of the line to overwrite only the relevant part
+  clrtoeol(); // Clear to end of line
   for (int disk : auxRod.getDisks()) {
-    printw("[%d]   ", disk); // Add extra spacing between each disk
+    printw("[%d] ", disk);
   }
 
-  // Only update the Target rod display
   mvprintw(7, 0, "Target: ");
-  clrtoeol(); // Clear to end of the line to overwrite only the relevant part
+  clrtoeol(); // Clear to end of line
   for (int disk : targetRod.getDisks()) {
-    printw("[%d]   ", disk); // Add extra spacing between each disk
+    printw("[%d] ", disk);
   }
 
-  refresh(); // Refresh the screen to show updates
+  // Display the move count at the bottom
+  mvprintw(9, 0, "Move %d", moveCount);
+  refresh(); // Refresh the screen to display the updated TUI
 }
 
-// Recursive Tower of Hanoi function with logging and TUI updates
+// Recursive Tower of Hanoi function with logging, move count, and TUI animation
 void towerOfHanoiRecursive(int n, Rod &sourceRod, Rod &targetRod, Rod &auxRod,
                            int &moveCount) {
   if (n == 1) {
-    int disk = sourceRod.getTopDisk();
-    sourceRod.moveTopDiskTo(targetRod);
-    logMoveToFile(disk, sourceRod.getName(), targetRod.getName());
-
-    // Increment and print move count
-    moveCount++;
-    updateTUI(sourceRod, targetRod, auxRod);
-    mvprintw(10, 0, "Move %d: Moved disk %d from %s to %s", moveCount, disk,
-             sourceRod.getName().c_str(), targetRod.getName().c_str());
-    clrtoeol();
-    refresh();
+    moveCount++;                                   // Increment move count
+    sourceRod.moveTopDiskTo(targetRod, moveCount); // Pass move count
+    logMoveToFile(sourceRod.getTopDisk(), sourceRod.getName(),
+                  targetRod.getName());
+    updateTUI(sourceRod, targetRod, auxRod, moveCount); // Update TUI after move
     return;
   }
 
   towerOfHanoiRecursive(n - 1, sourceRod, auxRod, targetRod, moveCount);
-  int disk = sourceRod.getTopDisk();
-  sourceRod.moveTopDiskTo(targetRod);
-
-  // Increment and print move count
-  moveCount++;
-  updateTUI(sourceRod, targetRod, auxRod);
-  mvprintw(10, 0, "Move %d: Moved disk %d from %s to %s", moveCount, disk,
-           sourceRod.getName().c_str(), targetRod.getName().c_str());
-  clrtoeol();
-  refresh();
-
+  moveCount++;                                   // Increment move count
+  sourceRod.moveTopDiskTo(targetRod, moveCount); // Pass move count
+  logMoveToFile(sourceRod.getTopDisk(), sourceRod.getName(),
+                targetRod.getName());
+  updateTUI(sourceRod, targetRod, auxRod, moveCount); // Update TUI after move
   towerOfHanoiRecursive(n - 1, auxRod, targetRod, sourceRod, moveCount);
 }
 
-// Main Tower of Hanoi function with multithreading support
-
+// Main Tower of Hanoi function
 void towerOfHanoi(int n, Rod &sourceRod, Rod &targetRod, Rod &auxRod,
                   int threadLimit) {
-  std::atomic<int> moveCounter(0); // Initialize move counter
+  int moveCounter = 0; // Initialize move counter
 
-  setupTUI();
+  setupTUI(); // Setup ncurses TUI
+
   towerOfHanoiRecursive(n, sourceRod, targetRod, auxRod, moveCounter);
 
-  // End ncurses session and print total number of moves
-  endwin();
+  endwin(); // End ncurses session
+
+  // Print the total number of moves
   std::cout << "\nTotal moves: " << moveCounter << std::endl;
 }

@@ -8,6 +8,8 @@
 // Tower of Hanoi logic
 void towerOfHanoi(int n, Rod &sourceRod, Rod &targetRod, Rod &auxRod,
                   int threadLimit);
+void towerOfHanoiRecursive(int n, Rod &sourceRod, Rod &targetRod, Rod &auxRod,
+                           int &moveCount);
 
 // JSON handling functions
 void saveConfigToJson(const Rod &sourceRod, const Rod &targetRod,
@@ -21,7 +23,7 @@ void logMoveToFile(int disk, const std::string &fromRod,
 // Display the moves log file
 void displayLogFile();
 
-void towerOfHanoiRecursive(int n, Rod &sourceRod, Rod &targetRod, Rod &auxRod,
-                           int &moveCount);
+// TUI setup function (if you need the ncurses-based terminal UI)
+void setupTUI();
 
 #endif // HANOI_HH

@@ -12,7 +12,8 @@ public:
   Rod(const std::string &name);
 
   void addDisk(int disk);
-  void moveTopDiskTo(Rod &targetRod);
+  void moveTopDiskTo(Rod &targetRod,
+                     int moveCount); // Modified to accept moveCount
   const std::string &getName() const;
   void displayRod() const;
   void displayInitialState() const;
