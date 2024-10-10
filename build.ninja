@@ -1,0 +1,34 @@
+
+# Specify the compiler and flags
+cxx = g++
+cxxflags = -std=c++17 -Wall -pthread
+
+# Specify the sources and the output executable
+sources = main.cc hanoi.cc rod.cc
+objects = main.o hanoi.o rod.o
+
+# Rule for compiling .cc files into .o object files
+rule compile
+  command = $cxx $cxxflags -c $in -o $out
+  description = Compiling $in
+
+# Rule for linking object files into the final executable
+rule link
+  command = $cxx $objects -o hanoi -pthread
+  description = Linking $objects to hanoi executable
+
+# Rule for cleaning up generated files (only object files and executable)
+rule clean
+  command = rm -f main.o hanoi.o rod.o hanoi
+  description = Cleaning up object files and executable
+
+# Build targets for object files
+build main.o: compile main.cc
+build hanoi.o: compile hanoi.cc
+build rod.o: compile rod.cc
+
+# Link the object files to create the final executable
+build hanoi: link main.o hanoi.o rod.o
+
+# Add a clean target
+build clean: clean
